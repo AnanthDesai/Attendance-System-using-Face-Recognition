@@ -22,20 +22,29 @@ def Attendance_Marker(name):
 
 images = []
 image_names = []
-img_dir = os.listdir(path)
-
-for img in img_dir:
-    image = cv2.imread(f'{path}/{img}')
-    images.append(image)
-    image_names.append(os.path.splitext(img)[0])
-
+img_dir = []
 encodings = []
+main_dir = os.listdir(path)
+print(main_dir)
+
+
+for dir in main_dir:
+    for img in os.listdir(f'{path}/{dir}'):
+        img_dir.append(img)
+print(img_dir)
+
+for dir in main_dir:
+    for img in os.listdir(f'{path}/{dir}'):
+        image = cv2.imread(f'{path}/{dir}/{img}')
+        images.append(image)
+        image_names.append(os.path.splitext(img)[0])
+print(image_names)
 
 for img in images:
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     encodings.append(face_recognition.face_encodings(img)[0])
 
-cam = cv2.VideoCapture(0)
+cam = cv2.VideoCapture(1)
 
 while True:
     success, img = cam.read()
@@ -52,14 +61,18 @@ while True:
         index = np.argmin(distance)
 
         if result[index]:
-            match_name = image_names[int(index)].upper()
-            print(match_name)
+            match_name = image_names[int(index)]
+            match_dir = ""
             y1, x2, y2, x1 = loc
             # y1, x2, y2, x1 = y1 * 4, x2 * 4, y2 * 4, x1 * 4
             cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
             cv2.rectangle(img, (x1, y2 - 15), (x2, y2), (0, 0, 255), cv2.FILLED)
-            cv2.putText(img, match_name, (x1 + 6, y2 - 4), cv2.FONT_HERSHEY_COMPLEX, 0.4, (255, 255, 255), 1)
-            Attendance_Marker(match_name)
-    #cv2.imshow('Found', img)
-
+            for i in main_dir:
+                for j in os.listdir(f'{path}/{i}'):
+                    if match_name == os.path.splitext(j)[0]:
+                        match_dir = i
+            print(match_dir)
+            cv2.putText(img, match_dir, (x1 + 6, y2 - 4), cv2.FONT_HERSHEY_COMPLEX, 0.4, (255, 255, 255), 1)
+            Attendance_Marker(match_dir)
+    cv2.imshow('Found', img)
     cv2.waitKey(0)
